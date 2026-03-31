@@ -1,4 +1,4 @@
-# OneCoffe (CMPS460 Database Project)
+# OneCafe (CMPS460 Database Project)
 
 ## Project Overview
 OneCoffe is a One Piece themed coffee shop website built for **CMPS460 (Database Systems)**. The project is database-heavy and focuses on relational design, SQL querying, and practical data workflows.
