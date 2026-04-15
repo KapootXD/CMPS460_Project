@@ -1,4 +1,4 @@
--- OneCoffe Schema v1
+-- OneCafe Schema v1
 -- This file runs automatically when the database container starts for the first time.
 
 -- 1. Customers
@@ -24,17 +24,8 @@ CREATE TABLE IF NOT EXISTS coffees (
     created_at   TIMESTAMP DEFAULT NOW()
 );
 
--- 3. Employees
-CREATE TABLE IF NOT EXISTS employees (
-    employee_id SERIAL PRIMARY KEY,
-    full_name   VARCHAR(100) NOT NULL,
-    role        VARCHAR(50) NOT NULL DEFAULT 'barista',
-    email       VARCHAR(150) UNIQUE NOT NULL,
-    hired_at    TIMESTAMP DEFAULT NOW(),
-    is_active   BOOLEAN DEFAULT TRUE
-);
 
--- 4. Discount Codes
+-- 3. Discount Codes
 CREATE TABLE IF NOT EXISTS discount_codes (
     discount_code_id SERIAL PRIMARY KEY,
     code             VARCHAR(50) UNIQUE NOT NULL,
@@ -45,7 +36,7 @@ CREATE TABLE IF NOT EXISTS discount_codes (
     valid_to         DATE
 );
 
--- 5. Orders
+-- 4. Orders
 CREATE TABLE IF NOT EXISTS orders (
     order_id         SERIAL PRIMARY KEY,
     customer_id      INT NOT NULL REFERENCES customers(customer_id),
@@ -56,7 +47,7 @@ CREATE TABLE IF NOT EXISTS orders (
     placed_at        TIMESTAMP DEFAULT NOW()
 );
 
--- 6. Order Items
+-- 5. Order Items
 CREATE TABLE IF NOT EXISTS order_items (
     order_item_id SERIAL PRIMARY KEY,
     order_id      INT NOT NULL REFERENCES orders(order_id) ON DELETE CASCADE,
@@ -66,7 +57,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     line_total    NUMERIC(8,2) NOT NULL
 );
 
--- 7. Inventory Batches
+-- 6. Inventory Batches
 CREATE TABLE IF NOT EXISTS inventory_batches (
     batch_id           SERIAL PRIMARY KEY,
     coffee_id          INT NOT NULL REFERENCES coffees(coffee_id),
@@ -77,7 +68,7 @@ CREATE TABLE IF NOT EXISTS inventory_batches (
     expiration_date    DATE
 );
 
--- 8. Reviews
+-- 7. Reviews
 CREATE TABLE IF NOT EXISTS reviews (
     review_id    SERIAL PRIMARY KEY,
     customer_id  INT NOT NULL REFERENCES customers(customer_id),
