@@ -57,18 +57,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     line_total    NUMERIC(8,2) NOT NULL
 );
 
--- 6. Inventory Batches
-CREATE TABLE IF NOT EXISTS inventory_batches (
-    batch_id           SERIAL PRIMARY KEY,
-    coffee_id          INT NOT NULL REFERENCES coffees(coffee_id),
-    supplier_name      VARCHAR(100),
-    quantity_received  INT NOT NULL CHECK (quantity_received >= 0),
-    quantity_remaining INT NOT NULL CHECK (quantity_remaining >= 0),
-    received_at        TIMESTAMP DEFAULT NOW(),
-    expiration_date    DATE
-);
-
--- 7. Reviews
+-- 6. Reviews
 CREATE TABLE IF NOT EXISTS reviews (
     review_id    SERIAL PRIMARY KEY,
     customer_id  INT NOT NULL REFERENCES customers(customer_id),
