@@ -14,7 +14,7 @@ function App() {
 
   return (
     <div style={{ textAlign: 'center', marginTop: '100px', fontFamily: 'sans-serif' }}>
-      <h1>☕ OneCoffe</h1>
+      <h1>☕ OneCafe</h1>
       <p>A One Piece Themed Coffee Shop</p>
       <p style={{ color: '#888' }}>Backend status: {message}</p>
     </div>
