@@ -6,6 +6,289 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #1a1a1a;
-  color: #f5f5f5;
+  background-color: #efefef;
+  color: #1f2c3d;
+}
+
+#root {
+  min-height: 100vh;
+  padding: 0;
+}
+
+.page-shell {
+  min-height: 100vh;
+  background-color: #efefef;
+  display: flex;
+  flex-direction: column;
+}
+
+.top-nav {
+  height: 54px;
+  width: 100%;
+  margin: 0;
+  background-color: #765238;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+
+.brand {
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.nav-links a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.nav-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 4px;
+  padding: 10px 14px;
+  background-color: #9f6f48;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.landing-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  margin-bottom: 52px;
+}
+
+.hero-image {
+  width: 110px;
+  height: 74px;
+  object-fit: contain;
+  margin-bottom: 12px;
+}
+
+.coffee-accents {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  opacity: 0.9;
+}
+
+.coffee-accents img {
+  object-fit: contain;
+}
+
+.coffee-accents img:nth-child(1),
+.coffee-accents img:nth-child(3) {
+  width: 22px;
+  height: 22px;
+}
+
+.coffee-accents img:nth-child(2) {
+  width: 30px;
+  height: 30px;
+}
+
+.landing-page h1 {
+  font-size: 34px;
+  line-height: 1.2;
+  color: #1f2c3d;
+  margin-bottom: 18px;
+}
+
+.landing-page p {
+  max-width: 700px;
+  font-size: 28px;
+  line-height: 1.2;
+  color: #1f2c3d;
+  margin-bottom: 38px;
+}
+
+.menu-button {
+  border: 0;
+  border-radius: 10px;
+  padding: 22px 42px;
+  background-color: #1f2c3d;
+  color: #ffffff;
+  font-size: 32px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.signup-page {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.signup-card {
+  width: 100%;
+  max-width: 560px;
+  border: 1px solid #cfd3d7;
+  border-radius: 8px;
+  padding: 26px 24px 20px;
+  background-color: #efefef;
+  text-align: center;
+}
+
+.signup-card h1 {
+  color: #7a4f34;
+  font-size: 44px;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.signup-form input {
+  width: 100%;
+  height: 42px;
+  border: 1px solid #bcc3ca;
+  border-radius: 4px;
+  background-color: #f2f2f2;
+  padding: 0 10px;
+  font-size: 14px;
+  color: #1f2c3d;
+}
+
+.signup-form input::placeholder {
+  color: #4a5563;
+}
+
+.signup-button {
+  margin-top: 10px;
+  width: 100%;
+  height: 42px;
+  border: 0;
+  border-radius: 4px;
+  background-color: #7a4f34;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.signup-button:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.signup-feedback {
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.signup-feedback.success {
+  color: #2d6a4f;
+}
+
+.signup-feedback.error {
+  color: #a22d2d;
+}
+
+.signin-text {
+  margin-top: 16px;
+  font-size: 14px;
+  color: #1f2c3d;
+}
+
+.signin-text a {
+  color: #7a4f34;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.page-footer {
+  margin: 0 12px 10px;
+  padding: 14px 0;
+  border-top: 1px solid #d4d4d4;
+  text-align: center;
+}
+
+.page-footer p {
+  color: #1f2c3d;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+@media (max-width: 900px) {
+  .brand {
+    font-size: 24px;
+  }
+
+  .nav-links {
+    gap: 8px;
+  }
+
+  .nav-links a,
+  .nav-action-button {
+    font-size: 12px;
+  }
+
+  .top-nav {
+    padding: 0 12px;
+  }
+
+  .signup-card {
+    max-width: 94%;
+    padding: 18px 14px;
+  }
+
+  .landing-page h1 {
+    font-size: 28px;
+  }
+
+  .landing-page p {
+    font-size: 18px;
+  }
+
+  .menu-button {
+    font-size: 24px;
+    padding: 14px 24px;
+  }
+
+  .coffee-accents img:nth-child(1),
+  .coffee-accents img:nth-child(3) {
+    width: 18px;
+    height: 18px;
+  }
+
+  .coffee-accents img:nth-child(2) {
+    width: 24px;
+    height: 24px;
+  }
+
+  .signup-card h1 {
+    font-size: 32px;
+  }
+
+  .signup-button {
+    font-size: 18px;
+  }
 }
