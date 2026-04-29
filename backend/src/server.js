@@ -1,10 +1,11 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import pool from './db.js';
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || process.env.API_PORT || 5000;
 
 // Middleware
 app.use(cors());
@@ -64,6 +65,55 @@ app.post('/api/auth/signup', async (req, res) => {
       return res.status(409).json({ error: 'Email is already registered.' });
     }
     return res.status(500).json({ error: 'Failed to create account.' });
+  }
+});
+
+// Login route
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required.' });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT customer_id, full_name, email, phone, created_at, password_hash
+       FROM customers
+       WHERE email = $1 AND is_active = TRUE
+       LIMIT 1`,
+      [email.trim().toLowerCase()],
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(401).json({ error: 'Incorrect email or password.' });
+    }
+
+    const customer = result.rows[0];
+
+    // Development seed data ships with a placeholder bcrypt string, so keep demo login usable.
+    const matchesSeedPassword = (
+      customer.password_hash === '$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012'
+      && password === 'password123'
+    );
+    const passwordMatches = matchesSeedPassword || await bcrypt.compare(password, customer.password_hash);
+
+    if (!passwordMatches) {
+      return res.status(401).json({ error: 'Incorrect email or password.' });
+    }
+
+    return res.json({
+      message: 'Login successful.',
+      customer: {
+        customer_id: customer.customer_id,
+        full_name: customer.full_name,
+        email: customer.email,
+        phone: customer.phone,
+        created_at: customer.created_at,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to log in.' });
   }
 });
 
