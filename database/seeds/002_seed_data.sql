@@ -23,36 +23,22 @@ INSERT INTO customers (full_name, email, password_hash, phone) VALUES
 ('Nico Robin',       'robin@onecoffe.com',  '$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012', '555-0005');
 
 
--- Discount Codes
-INSERT INTO discount_codes (code, discount_type, discount_value, is_active, valid_from, valid_to) VALUES
-('NAKAMA10',   'percent', 10.00, TRUE,  '2025-01-01', '2026-12-31'),
-('GRANDLINE5', 'flat',     5.00, TRUE,  '2025-06-01', '2026-06-30'),
-('PIRATE20',   'percent', 20.00, FALSE, '2025-01-01', '2025-06-30');
+-- Carts
+INSERT INTO cart (customer_id, cart_status, updated_at) VALUES
+(1, 'active', '2026-03-01 10:30:00'),
+(2, 'active', '2026-03-02 14:15:00'),
+(3, 'active', '2026-03-03 09:00:00'),
+(1, 'abandoned', '2026-03-10 11:00:00'),
+(4, 'active', '2026-03-15 16:45:00');
 
--- Orders
-INSERT INTO orders (customer_id, order_status, order_total, placed_at) VALUES
-(1, 'completed', 14.47, '2026-03-01 10:30:00'),
-(2, 'completed', 10.98, '2026-03-02 14:15:00'),
-(3, 'pending',    4.49, '2026-03-03 09:00:00'),
-(1, 'confirmed', 10.08, '2026-03-10 11:00:00'),
-(4, 'completed',  3.99, '2026-03-15 16:45:00');
-
--- Order Items
-INSERT INTO order_items (order_id, coffee_id, quantity, unit_price, line_total) VALUES
-(1, 1, 2, 4.99,  9.98),
-(1, 3, 1, 4.49,  4.49),
-(2, 2, 2, 5.49, 10.98),
-(3, 3, 1, 4.49,  4.49),
-(4, 4, 1, 5.29,  5.29),
-(4, 8, 1, 4.79,  4.79),
-(5, 5, 1, 3.99,  3.99);
+-- Cart items
+INSERT INTO cart_items (cart_id, coffee_id, quantity, unit_price) VALUES
+(1, 1, 2, 4.99),
+(1, 3, 1, 4.49),
+(2, 2, 2, 5.49),
+(3, 3, 1, 4.49),
+(4, 4, 1, 5.29),
+(4, 8, 1, 4.79),
+(5, 5, 1, 3.99);
 
 
--- Reviews
-INSERT INTO reviews (customer_id, coffee_id, rating, comment_text) VALUES
-(1, 1, 5, 'This latte gives me the energy to be King of the Pirates!'),
-(2, 2, 4, 'Strong like my swords. Could use a fourth flavor.'),
-(3, 3, 5, 'Refreshing! Almost as good as treasure.'),
-(4, 5, 5, 'The marshmallows are so cute! Emergency food supply approved.'),
-(1, 9, 4, 'Spicy! Reminds me of Ace... great coffee though.'),
-(5, 6, 5, 'Dark and complex. I could read a thousand books drinking this.');
