@@ -10,10 +10,10 @@ SELECT name, price FROM coffees WHERE price < 5.00 ORDER BY price;
 -- 3. Find customer by email
 SELECT * FROM customers WHERE email = 'luffy@onecoffe.com';
 
--- 4. Show all orders with status 'pending'
-SELECT * FROM orders WHERE order_status = 'pending';
+-- 4. Show all active carts
+SELECT * FROM cart WHERE cart_status = 'active';
 
--- 5. List reviews with rating >= 4
-SELECT * FROM reviews WHERE rating >= 4;
+-- 5. List cart items for cart_id = 1
+SELECT * FROM cart_items WHERE cart_id = 1;
 
 -- TODO: Add queries 6-10

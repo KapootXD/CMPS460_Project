@@ -25,44 +25,22 @@ CREATE TABLE IF NOT EXISTS coffees (
 );
 
 
--- 3. Discount Codes
-CREATE TABLE IF NOT EXISTS discount_codes (
-    discount_code_id SERIAL PRIMARY KEY,
-    code             VARCHAR(50) UNIQUE NOT NULL,
-    discount_type    VARCHAR(10) NOT NULL CHECK (discount_type IN ('percent', 'flat')),
-    discount_value   NUMERIC(6,2) NOT NULL CHECK (discount_value > 0),
-    is_active        BOOLEAN DEFAULT TRUE,
-    valid_from       DATE,
-    valid_to         DATE
+
+-- 3. Shopping cart (one cart per row; line items live in cart_items)
+CREATE TABLE IF NOT EXISTS cart (
+    cart_id     SERIAL PRIMARY KEY,
+    customer_id INT NOT NULL REFERENCES customers(customer_id),
+    cart_status VARCHAR(20) NOT NULL DEFAULT 'active'
+                CHECK (cart_status IN ('active', 'abandoned')),
+    updated_at  TIMESTAMP DEFAULT NOW()
 );
 
--- 4. Orders
-CREATE TABLE IF NOT EXISTS orders (
-    order_id         SERIAL PRIMARY KEY,
-    customer_id      INT NOT NULL REFERENCES customers(customer_id),
-    order_status     VARCHAR(20) NOT NULL DEFAULT 'pending'
-                     CHECK (order_status IN ('pending', 'confirmed', 'completed', 'canceled')),
-    order_total      NUMERIC(8,2) NOT NULL DEFAULT 0,
-    discount_code_id INT REFERENCES discount_codes(discount_code_id),
-    placed_at        TIMESTAMP DEFAULT NOW()
-);
-
--- 5. Order Items
-CREATE TABLE IF NOT EXISTS order_items (
-    order_item_id SERIAL PRIMARY KEY,
-    order_id      INT NOT NULL REFERENCES orders(order_id) ON DELETE CASCADE,
-    coffee_id     INT NOT NULL REFERENCES coffees(coffee_id),
-    quantity      INT NOT NULL CHECK (quantity > 0),
-    unit_price    NUMERIC(6,2) NOT NULL,
-    line_total    NUMERIC(8,2) NOT NULL
-);
-
--- 6. Reviews
-CREATE TABLE IF NOT EXISTS reviews (
-    review_id    SERIAL PRIMARY KEY,
-    customer_id  INT NOT NULL REFERENCES customers(customer_id),
+-- 4. Cart items (no line_total: derive quantity * unit_price in queries for 3NF)
+CREATE TABLE IF NOT EXISTS cart_items (
+    cart_item_id SERIAL PRIMARY KEY,
+    cart_id      INT NOT NULL REFERENCES cart(cart_id) ON DELETE CASCADE,
     coffee_id    INT NOT NULL REFERENCES coffees(coffee_id),
-    rating       INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
-    comment_text TEXT,
-    created_at   TIMESTAMP DEFAULT NOW()
+    quantity     INT NOT NULL CHECK (quantity > 0),
+    unit_price   NUMERIC(6,2) NOT NULL
 );
+

@@ -5,7 +5,7 @@ OneCoffe is a One Piece themed coffee shop website built for **CMPS460 (Database
 
 The website includes:
 - A **landing page** with coffee cards and images
-- An **order page** for placing mock orders (no real card processing)
+- A **cart page** for items added before checkout (no real card processing)
 - A **login page** for customer/admin authentication
 
 ## Tech Stack
@@ -32,15 +32,11 @@ The website includes:
 - React makes it easy to present query-heavy data in dashboards/tables.
 - Docker Compose runs everything with one command — no manual installs needed.
 
-## Core Entities (8 Tables)
+## Core Entities (4 Tables)
 1. `customers`
 2. `coffees`
-3. `orders`
-4. `order_items`
-5. `employees`
-6. `inventory_batches`
-7. `reviews`
-8. `discount_codes`
+3. `cart`
+4. `cart_items`
 
 ## Project Structure
 ```text
