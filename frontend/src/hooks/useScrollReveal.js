@@ -1,6 +1,11 @@
 import { useEffect, useEffectEvent, useRef } from 'react';
 
-export function useScrollReveal() {
+/**
+ * Attaches IntersectionObserver to [data-reveal] descendants of rootRef.
+ * `watchKey` should change when dynamic children (e.g. menu cards from API) are added
+ * so new nodes are observed; otherwise they stay at opacity:0 from CSS.
+ */
+export function useScrollReveal(watchKey = 0) {
   const rootRef = useRef(null);
 
   const revealEntries = useEffectEvent((entries, observer) => {
@@ -40,7 +45,7 @@ export function useScrollReveal() {
     });
 
     return () => observer.disconnect();
-  }, [revealEntries]);
+  }, [revealEntries, watchKey]);
 
   return rootRef;
 }

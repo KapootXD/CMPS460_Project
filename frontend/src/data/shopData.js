@@ -187,6 +187,7 @@ export const fallbackCoffees = [
     theme_tag: 'Straw Hat',
     description: 'Bold espresso with stretchy caramel swirl',
     price: 4.99,
+    image_url: '/onecafe-assets/generated/drinks/luffy-latte-generated.png',
     is_available: true,
   },
   {
@@ -195,6 +196,7 @@ export const fallbackCoffees = [
     theme_tag: 'Straw Hat',
     description: 'Three-sword strength matcha latte',
     price: 5.49,
+    image_url: '/onecafe-assets/generated/drinks/zoro-zen-matcha-generated.png',
     is_available: true,
   },
   {
@@ -203,6 +205,7 @@ export const fallbackCoffees = [
     theme_tag: 'Straw Hat',
     description: 'Citrus cold brew with orange zest',
     price: 4.49,
+    image_url: '/onecafe-assets/generated/drinks/nami-navigator-generated.png',
     is_available: true,
   },
   {
@@ -211,6 +214,7 @@ export const fallbackCoffees = [
     theme_tag: 'Straw Hat',
     description: 'Smooth vanilla latte with a kick of cinnamon',
     price: 5.29,
+    image_url: '/onecafe-assets/generated/drinks/sanji-sunrise-generated.png',
     is_available: true,
   },
   {
@@ -219,6 +223,7 @@ export const fallbackCoffees = [
     theme_tag: 'Straw Hat',
     description: 'Rich hot chocolate with marshmallow antlers',
     price: 3.99,
+    image_url: '/onecafe-assets/generated/drinks/chopper-cocoa-generated.png',
     is_available: true,
   },
   {
@@ -227,6 +232,7 @@ export const fallbackCoffees = [
     theme_tag: 'Straw Hat',
     description: 'Deep, mysterious dark roast coffee',
     price: 4.29,
+    image_url: '/onecafe-assets/generated/drinks/robin-dark-roast-generated.png',
     is_available: true,
   },
   {
@@ -235,6 +241,7 @@ export const fallbackCoffees = [
     theme_tag: 'Straw Hat',
     description: 'Super-charged espresso with cola syrup',
     price: 5.99,
+    image_url: '/onecafe-assets/generated/drinks/franky-fuel-generated.png',
     is_available: true,
   },
   {
@@ -243,6 +250,7 @@ export const fallbackCoffees = [
     theme_tag: 'Straw Hat',
     description: 'Iced coffee so cold it chills your soul',
     price: 4.79,
+    image_url: '/onecafe-assets/generated/drinks/brook-bone-chill-generated.png',
     is_available: true,
   },
   {
@@ -251,6 +259,7 @@ export const fallbackCoffees = [
     theme_tag: 'Whitebeard',
     description: 'Spicy espresso with chili and dark chocolate',
     price: 5.99,
+    image_url: '/onecafe-assets/backgrounds/comic-rays-red.png',
     is_available: true,
   },
   {
@@ -259,6 +268,7 @@ export const fallbackCoffees = [
     theme_tag: 'Red Hair',
     description: 'Red berry mocha with raspberry drizzle',
     price: 5.49,
+    image_url: '/onecafe-assets/backgrounds/comic-rays-pink.png',
     is_available: true,
   },
 ];
@@ -308,10 +318,8 @@ export function buildCoffeeCatalog(coffees) {
         backgroundImage: accentToBackground(accent),
         characterImage: art.characterImage ?? null,
         characterAlt: art.characterAlt ?? `${coffee.name} character art`,
-        drinkImage: coffee.name === 'Gomu Gomu No... Punch!'
-          ? art.drinkImage || coffee.image_url || null
-          : coffee.image_url || art.drinkImage || null,
-        drinkAlt: art.drinkAlt ?? `${coffee.name} drink art`,
+        drinkImage: coffee.image_url?.trim() || null,
+        drinkAlt: art.drinkAlt ?? `${coffee.name} menu image`,
         themeLine: art.themeLine ?? coffee.theme_tag ?? 'Grand Line Roast',
         displayDescription: art.menuDescription ?? coffee.description,
         previewBubble: art.previewBubble ?? 'Fresh off the deck and ready for your next adventure.',
@@ -330,6 +338,7 @@ export function buildCoffeeCatalog(coffees) {
       theme_tag: 'OneCafe Special',
       description: 'A bubbling coffee blast that lands like a finishing move.',
       price: 6.95,
+      image_url: '/onecafe-assets/generated/drinks/usopp-sniper-generated.png',
       accent: 'orange',
       backgroundImage: '/onecafe-assets/backgrounds/comic-rays-orange.png',
       characterImage: '/onecafe-assets/characters/luffy-punch-hero.png',
