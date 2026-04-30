@@ -639,6 +639,14 @@ img {
   text-align: center;
 }
 
+.auth-feedback--error {
+  color: #b42318;
+}
+
+.auth-feedback--success {
+  color: #1b5e20;
+}
+
 .auth-links {
   margin: 10px 0 0;
   text-align: center;
@@ -1573,25 +1581,6 @@ img {
 
 .preview-card__body {
   padding-top: 14px;
-}
-
-.drink-card__art {
-  min-height: 0;
-  display: block;
-  padding: 0;
-  background: none;
-}
-
-.drink-card__art img {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-  filter: none;
-}
-
-.drink-card__fallback-art {
-  width: 100%;
-  min-height: 280px;
 }
 
 .oc-footer {

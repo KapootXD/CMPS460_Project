@@ -7,9 +7,10 @@ function MenuPage() {
     addToCart,
     cartItems,
     catalog,
+    menuStatus,
     updateCartItem,
   } = useShop();
-  const revealRef = useScrollReveal();
+  const revealRef = useScrollReveal(`${menuStatus}-${catalog.length}`);
 
   function getQuantityInCart(coffeeId) {
     return cartItems.find((item) => item.coffee_id === coffeeId)?.quantity ?? 0;

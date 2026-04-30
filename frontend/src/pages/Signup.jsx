@@ -42,6 +42,13 @@ function SignupPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Signup failed');
       setFeedback(`Welcome aboard, ${data.customer.full_name}!`);
+      if (typeof window !== 'undefined' && data.customer) {
+        window.localStorage.setItem('onecafe-user', JSON.stringify(data.customer));
+        if (data.token) {
+          window.localStorage.setItem('onecafe-token', data.token);
+        }
+        window.dispatchEvent(new Event('onecafe-user-changed'));
+      }
       setFormData({
         username: '',
         email: '',
@@ -50,7 +57,7 @@ function SignupPage() {
         confirmPassword: '',
         favorite: 'Luffy',
       });
-      setTimeout(() => navigate('/login'), 700);
+      setTimeout(() => navigate('/menu'), 700);
     } catch (error) {
       setFeedback(error.message);
     } finally {
