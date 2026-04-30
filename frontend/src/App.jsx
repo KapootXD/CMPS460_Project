@@ -5,6 +5,10 @@ import CartPage from './pages/Cart';
 import HomePage from './pages/Home';
 import LoginPage from './pages/Login';
 import MenuPage from './pages/Menu';
+import CheckoutPage from './pages/Checkout';
+import ReportActiveCartItems from './pages/ReportActiveCartItems';
+import ReportAvailableCoffees from './pages/ReportAvailableCoffees';
+import ReportCoffeesUnderFive from './pages/ReportCoffeesUnderFive';
 import SignupPage from './pages/Signup';
 
 function App() {
@@ -48,6 +52,38 @@ function App() {
           element={(
             <SiteLayout brand="onecafe" active="cart">
               <CartPage />
+            </SiteLayout>
+          )}
+        />
+        <Route
+          path="/checkout/:checkoutId"
+          element={(
+            <SiteLayout brand="onecafe" active="cart">
+              <CheckoutPage />
+            </SiteLayout>
+          )}
+        />
+        <Route
+          path="/reports/available-coffees"
+          element={(
+            <SiteLayout brand="onecafe" active="reports">
+              <ReportAvailableCoffees />
+            </SiteLayout>
+          )}
+        />
+        <Route
+          path="/reports/coffees-under-five"
+          element={(
+            <SiteLayout brand="onecafe" active="reports">
+              <ReportCoffeesUnderFive />
+            </SiteLayout>
+          )}
+        />
+        <Route
+          path="/reports/active-cart-items"
+          element={(
+            <SiteLayout brand="onecafe" active="reports">
+              <ReportActiveCartItems />
             </SiteLayout>
           )}
         />

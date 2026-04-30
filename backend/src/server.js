@@ -13,6 +13,31 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev_only_set_JWT_SECRET_in_env';
 app.use(cors());
 app.use(express.json());
 
+async function ensureCheckoutSchema() {
+  await pool.query(
+    `CREATE TABLE IF NOT EXISTS checkout_orders (
+       checkout_id  SERIAL PRIMARY KEY,
+       customer_id  INT NOT NULL REFERENCES customers(customer_id),
+       cart_id      INT NOT NULL REFERENCES cart(cart_id),
+       order_status VARCHAR(20) NOT NULL DEFAULT 'completed'
+                    CHECK (order_status IN ('pending', 'completed')),
+       total_amount NUMERIC(10,2) NOT NULL CHECK (total_amount >= 0),
+       created_at   TIMESTAMP NOT NULL DEFAULT NOW()
+     )`,
+  );
+
+  await pool.query(
+    `CREATE TABLE IF NOT EXISTS checkout_order_items (
+       checkout_item_id SERIAL PRIMARY KEY,
+       checkout_id      INT NOT NULL REFERENCES checkout_orders(checkout_id) ON DELETE CASCADE,
+       coffee_id        INT NOT NULL REFERENCES coffees(coffee_id),
+       coffee_name      VARCHAR(100) NOT NULL,
+       quantity         INT NOT NULL CHECK (quantity > 0),
+       unit_price       NUMERIC(6,2) NOT NULL CHECK (unit_price >= 0)
+     )`,
+  );
+}
+
 function signCustomerToken(customerId) {
   return jwt.sign(
     { sub: String(customerId), typ: 'customer' },
@@ -68,6 +93,56 @@ app.get('/api/coffees', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Report 1: list all available coffees
+app.get('/api/reports/available-coffees', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT coffee_id, name, theme_tag, price
+       FROM coffees
+       WHERE is_available = TRUE
+       ORDER BY name`,
+    );
+    res.json(result.rows);
+  } catch {
+    res.status(500).json({ error: 'Failed to load available coffees report.' });
+  }
+});
+
+// Report 2: coffees under $5.00
+app.get('/api/reports/coffees-under-five', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT coffee_id, name, price
+       FROM coffees
+       WHERE price < 5.00
+       ORDER BY price, name`,
+    );
+    res.json(result.rows);
+  } catch {
+    res.status(500).json({ error: 'Failed to load coffees-under-five report.' });
+  }
+});
+
+// Report 3: cart items in active carts (simple join report)
+app.get('/api/reports/active-cart-items', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT c.cart_id,
+              c.customer_id,
+              ci.coffee_id,
+              ci.quantity,
+              ci.unit_price
+       FROM cart c
+       JOIN cart_items ci ON ci.cart_id = c.cart_id
+       WHERE c.cart_status = 'active'
+       ORDER BY c.cart_id, ci.coffee_id`,
+    );
+    res.json(result.rows);
+  } catch {
+    res.status(500).json({ error: 'Failed to load active cart items report.' });
   }
 });
 
@@ -185,6 +260,24 @@ async function getOrCreateActiveCart(client, customerId) {
   );
 
   return created.rows[0].cart_id;
+}
+
+async function getActiveCartId(client, customerId) {
+  const result = await client.query(
+    `SELECT cart_id
+     FROM cart
+     WHERE customer_id = $1
+       AND cart_status = 'active'
+     ORDER BY updated_at DESC, cart_id DESC
+     LIMIT 1`,
+    [customerId],
+  );
+
+  if (result.rowCount === 0) {
+    return null;
+  }
+
+  return result.rows[0].cart_id;
 }
 
 async function fetchCartItemsByCustomer(client, customerId) {
@@ -431,7 +524,164 @@ app.delete('/api/cart', requireCartAuth, async (req, res) => {
   }
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 OneCoffe API running on port ${PORT}`);
+app.post('/api/checkout', requireCartAuth, async (req, res) => {
+  const customerId = req.authCustomerId;
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const customerLookup = await client.query(
+      `SELECT customer_id, full_name
+       FROM customers
+       WHERE customer_id = $1
+         AND is_active = TRUE
+       LIMIT 1`,
+      [customerId],
+    );
+    if (customerLookup.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Customer not found.' });
+    }
+
+    const cartId = await getActiveCartId(client, customerId);
+    if (!cartId) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Your cart is empty.' });
+    }
+
+    const itemsResult = await client.query(
+      `SELECT ci.coffee_id,
+              c.name AS coffee_name,
+              ci.quantity,
+              ci.unit_price
+       FROM cart_items ci
+       JOIN coffees c ON c.coffee_id = ci.coffee_id
+       WHERE ci.cart_id = $1
+       ORDER BY ci.coffee_id`,
+      [cartId],
+    );
+
+    if (itemsResult.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Your cart is empty.' });
+    }
+
+    const totalAmount = itemsResult.rows.reduce(
+      (sum, row) => sum + (Number(row.quantity) * Number(row.unit_price)),
+      0,
+    );
+
+    const checkoutInsert = await client.query(
+      `INSERT INTO checkout_orders (customer_id, cart_id, order_status, total_amount)
+       VALUES ($1, $2, 'completed', $3)
+       RETURNING checkout_id, customer_id, cart_id, order_status, total_amount, created_at`,
+      [customerId, cartId, totalAmount],
+    );
+
+    const checkout = checkoutInsert.rows[0];
+
+    for (const item of itemsResult.rows) {
+      await client.query(
+        `INSERT INTO checkout_order_items (checkout_id, coffee_id, coffee_name, quantity, unit_price)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [checkout.checkout_id, item.coffee_id, item.coffee_name, item.quantity, item.unit_price],
+      );
+    }
+
+    await client.query(
+      `UPDATE cart
+       SET cart_status = 'abandoned',
+           updated_at = NOW()
+       WHERE cart_id = $1`,
+      [cartId],
+    );
+
+    await client.query('COMMIT');
+
+    return res.status(201).json({
+      checkout: {
+        ...checkout,
+        customer_name: customerLookup.rows[0].full_name,
+      },
+      items: itemsResult.rows.map((item) => ({
+        coffee_id: Number(item.coffee_id),
+        coffee_name: item.coffee_name,
+        quantity: Number(item.quantity),
+        unit_price: Number(item.unit_price),
+        line_total: Number(item.quantity) * Number(item.unit_price),
+      })),
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    return res.status(500).json({ error: 'Failed to complete checkout.' });
+  } finally {
+    client.release();
+  }
 });
+
+app.get('/api/checkout/:checkoutId', requireCartAuth, async (req, res) => {
+  const customerId = req.authCustomerId;
+  const checkoutId = normalizeCustomerId(req.params.checkoutId);
+
+  if (!checkoutId) {
+    return res.status(400).json({ error: 'Valid checkout_id is required.' });
+  }
+
+  try {
+    const checkoutResult = await pool.query(
+      `SELECT co.checkout_id,
+              co.customer_id,
+              co.cart_id,
+              co.order_status,
+              co.total_amount,
+              co.created_at,
+              cu.full_name AS customer_name
+       FROM checkout_orders co
+       JOIN customers cu ON cu.customer_id = co.customer_id
+       WHERE co.checkout_id = $1
+         AND co.customer_id = $2
+       LIMIT 1`,
+      [checkoutId, customerId],
+    );
+
+    if (checkoutResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Checkout not found.' });
+    }
+
+    const itemsResult = await pool.query(
+      `SELECT coffee_id, coffee_name, quantity, unit_price
+       FROM checkout_order_items
+       WHERE checkout_id = $1
+       ORDER BY coffee_id`,
+      [checkoutId],
+    );
+
+    return res.json({
+      checkout: checkoutResult.rows[0],
+      items: itemsResult.rows.map((item) => ({
+        coffee_id: Number(item.coffee_id),
+        coffee_name: item.coffee_name,
+        quantity: Number(item.quantity),
+        unit_price: Number(item.unit_price),
+        line_total: Number(item.quantity) * Number(item.unit_price),
+      })),
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to load checkout.' });
+  }
+});
+
+async function startServer() {
+  try {
+    await ensureCheckoutSchema();
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 OneCoffe API running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error('❌ Failed to ensure checkout schema:', err.message);
+    process.exit(1);
+  }
+}
+
+startServer();

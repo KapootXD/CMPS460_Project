@@ -111,12 +111,7 @@ docker compose down -v
 
 ## Course-Oriented Goals
 - Use at least 4 relational tables with proper PK/FK constraints.
-- Implement 50+ SQL queries (basic to advanced).
+- Implement 5+ SQL queries (basic to advanced).
 - Demonstrate normalization and indexing decisions.
 - Show meaningful reports and analytics from real-looking data.
 - Keep the website functional while showcasing database concepts first.
-
-## Current Status
-- Project documentation created
-- Tech stack finalized (React + Express + PostgreSQL + Docker)
-- Detailed milestone plan: see `PROJECT.md`

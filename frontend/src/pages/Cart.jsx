@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useShop } from '../context/ShopContext';
 import { cartUpsells, formatPrice } from '../data/shopData';
 import { useScrollReveal } from '../hooks/useScrollReveal';
@@ -7,11 +8,37 @@ function CartPage() {
   const {
     cartItems,
     cartSubtotal,
+    checkoutCart,
     clearCart,
     removeFromCart,
     updateCartItem,
   } = useShop();
+  const navigate = useNavigate();
   const revealRef = useScrollReveal();
+  const [checkoutFeedback, setCheckoutFeedback] = useState('');
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
+  async function handleCheckout() {
+    if (cartItems.length === 0) {
+      setCheckoutFeedback('Add at least one drink before checkout.');
+      return;
+    }
+
+    setCheckoutLoading(true);
+    setCheckoutFeedback('');
+
+    try {
+      const result = await checkoutCart();
+      if (!result.ok || !result.checkout?.checkout_id) {
+        setCheckoutFeedback(result.error || 'Checkout failed.');
+        return;
+      }
+
+      navigate(`/checkout/${result.checkout.checkout_id}`);
+    } finally {
+      setCheckoutLoading(false);
+    }
+  }
 
   return (
     <main ref={revealRef} className="oc-page oc-cart">
@@ -68,8 +95,16 @@ function CartPage() {
           <strong>{formatPrice(cartSubtotal)}</strong>
           <div className="cart-checkout__actions">
             <Link to="/menu">Keep Shopping</Link>
+            <button type="button" onClick={handleCheckout} disabled={checkoutLoading || cartItems.length === 0}>
+              {checkoutLoading ? 'Checking Out...' : 'Checkout'}
+            </button>
             <button type="button" onClick={clearCart}>Clear Cart</button>
           </div>
+          {checkoutFeedback ? (
+            <p className="cart-checkout__feedback" role="status">
+              {checkoutFeedback}
+            </p>
+          ) : null}
         </div>
         <p className="cart-checkout__sfx cart-checkout__sfx--left">ドン!!</p>
         <p className="cart-checkout__sfx cart-checkout__sfx--right">バン!!</p>
