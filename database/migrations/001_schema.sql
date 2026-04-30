@@ -44,3 +44,23 @@ CREATE TABLE IF NOT EXISTS cart_items (
     unit_price   NUMERIC(6,2) NOT NULL
 );
 
+-- 5. Checkout orders (persisted order summary after user checks out)
+CREATE TABLE IF NOT EXISTS checkout_orders (
+    checkout_id  SERIAL PRIMARY KEY,
+    customer_id  INT NOT NULL REFERENCES customers(customer_id),
+    cart_id      INT NOT NULL REFERENCES cart(cart_id),
+    order_status VARCHAR(20) NOT NULL DEFAULT 'completed'
+                CHECK (order_status IN ('pending', 'completed')),
+    total_amount NUMERIC(10,2) NOT NULL CHECK (total_amount >= 0),
+    created_at   TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- 6. Checkout order items (snapshot of the order line items at checkout)
+CREATE TABLE IF NOT EXISTS checkout_order_items (
+    checkout_item_id SERIAL PRIMARY KEY,
+    checkout_id      INT NOT NULL REFERENCES checkout_orders(checkout_id) ON DELETE CASCADE,
+    coffee_id        INT NOT NULL REFERENCES coffees(coffee_id),
+    coffee_name      VARCHAR(100) NOT NULL,
+    quantity         INT NOT NULL CHECK (quantity > 0),
+    unit_price       NUMERIC(6,2) NOT NULL CHECK (unit_price >= 0)
+);

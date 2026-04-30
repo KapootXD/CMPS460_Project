@@ -324,6 +324,38 @@ export function ShopProvider({ children }) {
     setCart([]);
   }
 
+  async function checkoutCart() {
+    if (!useServerCart()) {
+      return { ok: false, error: 'Please log in before checkout so we can save your order.' };
+    }
+
+    const response = await fetch(`${API_URL}/api/checkout`, {
+      method: 'POST',
+      headers: authBearerHeaders(),
+    });
+
+    let data = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: data?.error || 'Checkout failed.',
+      };
+    }
+
+    setCart([]);
+
+    return {
+      ok: true,
+      checkout: data?.checkout,
+    };
+  }
+
   return (
     <ShopContext.Provider
       value={{
@@ -338,6 +370,7 @@ export function ShopProvider({ children }) {
         updateCartItem,
         removeFromCart,
         clearCart,
+        checkoutCart,
       }}
     >
       {children}
