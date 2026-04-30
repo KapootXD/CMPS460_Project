@@ -14,7 +14,7 @@ INSERT INTO coffees (name, theme_tag, description, price, image_url, is_availabl
 ('Brook Bone Chill',   'Straw Hat',    'Iced coffee so cold it chills your soul',            4.79, '/onecafe-assets/generated/drinks/brook-bone-chill-generated.png', TRUE),
 ('Ace Inferno Brew',   'Whitebeard',   'Spicy espresso with chili and dark chocolate',       5.99, '/onecafe-assets/backgrounds/comic-rays-red.png', TRUE),
 ('Shanks Redline',     'Red Hair',     'Red berry mocha with raspberry drizzle',             5.49, '/onecafe-assets/backgrounds/comic-rays-pink.png', TRUE);
-
+/*
 -- Customers (using bcrypt hash for password "password123")
 INSERT INTO customers (full_name, email, password_hash, phone) VALUES
 ('Monkey D. Luffy',  'luffy@onecoffe.com',  '$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012', '555-0001'),
@@ -41,5 +41,5 @@ INSERT INTO cart_items (cart_id, coffee_id, quantity, unit_price) VALUES
 (4, 4, 1, 5.29),
 (4, 8, 1, 4.79),
 (5, 5, 1, 3.99);
-
+*/
 
