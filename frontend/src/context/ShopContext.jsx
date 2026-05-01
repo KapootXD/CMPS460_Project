@@ -14,6 +14,7 @@ import {
 
 const CART_STORAGE_KEY = 'onecafe-cart-v1';
 const TOKEN_STORAGE_KEY = 'onecafe-token';
+const USER_STORAGE_KEY = 'onecafe-user';
 
 const ShopContext = createContext(null);
 
@@ -22,6 +23,57 @@ function getStoredToken() {
     return '';
   }
   return window.localStorage.getItem(TOKEN_STORAGE_KEY) ?? '';
+}
+
+function clearStoredAuth() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+  window.localStorage.removeItem(USER_STORAGE_KEY);
+  window.dispatchEvent(new Event('onecafe-user-changed'));
+}
+
+async function readErrorMessage(response) {
+  try {
+    const data = await response.json();
+    if (data && typeof data.error === 'string' && data.error.trim().length > 0) {
+      return data.error;
+    }
+  } catch {
+    // Ignore parse errors and fall back to generic text.
+  }
+  return `Request failed with status ${response.status}.`;
+}
+
+function isAuthFailure(status, message = '') {
+  if (status === 401 || status === 403) {
+    return true;
+  }
+  return status === 404 && /customer not found/i.test(message);
+}
+
+function applyLocalAdd(currentCart, coffeeId, quantity = 1) {
+  const existing = currentCart.find((entry) => entry.coffee_id === coffeeId);
+  if (existing) {
+    return currentCart.map((entry) => (
+      entry.coffee_id === coffeeId
+        ? { ...entry, quantity: entry.quantity + quantity }
+        : entry
+    ));
+  }
+  return [...currentCart, { coffee_id: coffeeId, quantity }];
+}
+
+function applyLocalUpdate(currentCart, coffeeId, quantity) {
+  if (quantity <= 0) {
+    return currentCart.filter((entry) => entry.coffee_id !== coffeeId);
+  }
+  return currentCart.map((entry) => (
+    entry.coffee_id === coffeeId
+      ? { ...entry, quantity }
+      : entry
+  ));
 }
 
 function authJsonHeaders() {
@@ -67,7 +119,7 @@ export function ShopProvider({ children }) {
     }
 
     try {
-      const parsed = JSON.parse(window.localStorage.getItem('onecafe-user') ?? 'null');
+      const parsed = JSON.parse(window.localStorage.getItem(USER_STORAGE_KEY) ?? 'null');
       if (!parsed || typeof parsed !== 'object') {
         return null;
       }
@@ -89,7 +141,10 @@ export function ShopProvider({ children }) {
       headers: authBearerHeaders(),
     });
     if (!response.ok) {
-      throw new Error(`Cart request failed with status ${response.status}.`);
+      const message = await readErrorMessage(response);
+      const error = new Error(message);
+      error.status = response.status;
+      throw error;
     }
 
     const data = await response.json();
@@ -111,7 +166,12 @@ export function ShopProvider({ children }) {
     try {
       const serverCart = await fetchServerCart();
       setCart(serverCart);
-    } catch {
+    } catch (error) {
+      if (isAuthFailure(error.status, error.message)) {
+        clearStoredAuth();
+        setCart(readStoredCart());
+        return;
+      }
       setCart([]);
     }
   }
@@ -208,19 +268,7 @@ export function ShopProvider({ children }) {
 
   async function addToCart(coffee, quantity = 1) {
     if (!useServerCart()) {
-      setCart((currentCart) => {
-        const existing = currentCart.find((entry) => entry.coffee_id === coffee.coffee_id);
-
-        if (existing) {
-          return currentCart.map((entry) => (
-            entry.coffee_id === coffee.coffee_id
-              ? { ...entry, quantity: entry.quantity + quantity }
-              : entry
-          ));
-        }
-
-        return [...currentCart, { coffee_id: coffee.coffee_id, quantity }];
-      });
+      setCart((currentCart) => applyLocalAdd(currentCart, coffee.coffee_id, quantity));
       return;
     }
 
@@ -234,6 +282,11 @@ export function ShopProvider({ children }) {
     });
 
     if (!response.ok) {
+      const message = await readErrorMessage(response);
+      if (isAuthFailure(response.status, message)) {
+        clearStoredAuth();
+        setCart((currentCart) => applyLocalAdd(currentCart, coffee.coffee_id, quantity));
+      }
       return;
     }
 
@@ -248,17 +301,7 @@ export function ShopProvider({ children }) {
 
   async function updateCartItem(coffeeId, quantity) {
     if (!useServerCart()) {
-      setCart((currentCart) => {
-        if (quantity <= 0) {
-          return currentCart.filter((entry) => entry.coffee_id !== coffeeId);
-        }
-
-        return currentCart.map((entry) => (
-          entry.coffee_id === coffeeId
-            ? { ...entry, quantity }
-            : entry
-        ));
-      });
+      setCart((currentCart) => applyLocalUpdate(currentCart, coffeeId, quantity));
       return;
     }
 
@@ -271,6 +314,11 @@ export function ShopProvider({ children }) {
     });
 
     if (!response.ok) {
+      const message = await readErrorMessage(response);
+      if (isAuthFailure(response.status, message)) {
+        clearStoredAuth();
+        setCart((currentCart) => applyLocalUpdate(currentCart, coffeeId, quantity));
+      }
       return;
     }
 
@@ -295,6 +343,11 @@ export function ShopProvider({ children }) {
     });
 
     if (!response.ok) {
+      const message = await readErrorMessage(response);
+      if (isAuthFailure(response.status, message)) {
+        clearStoredAuth();
+        setCart((currentCart) => currentCart.filter((entry) => entry.coffee_id !== coffeeId));
+      }
       return;
     }
 
@@ -318,6 +371,11 @@ export function ShopProvider({ children }) {
       headers: authBearerHeaders(),
     });
     if (!response.ok) {
+      const message = await readErrorMessage(response);
+      if (isAuthFailure(response.status, message)) {
+        clearStoredAuth();
+        setCart([]);
+      }
       return;
     }
 
@@ -342,9 +400,14 @@ export function ShopProvider({ children }) {
     }
 
     if (!response.ok) {
+      const message = data?.error || 'Checkout failed.';
+      if (isAuthFailure(response.status, message)) {
+        clearStoredAuth();
+        return { ok: false, error: 'Session expired. Please log in again.' };
+      }
       return {
         ok: false,
-        error: data?.error || 'Checkout failed.',
+        error: message,
       };
     }
 

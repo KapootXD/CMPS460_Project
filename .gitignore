@@ -4,8 +4,4 @@ dist/
 .DS_Store
 pgdata/
 
-# Ignore all markdown files except README
-*.md
-!README.md
-!DB_STARTUP.md
 
